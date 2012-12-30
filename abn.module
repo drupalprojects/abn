@@ -5,6 +5,20 @@
  */
 
 /**
+ * Implements hook_menu().
+ */
+function abn_menu() {
+  $items['ajax/abn_lookup/%'] = array(
+    'title' => 'ABN Lookup',
+    'page callback' => 'abn_lookup_callback',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'abn.pages.inc',
+  );
+  return $items;
+}
+
+/**
  * Implements hook_field_info().
  */
 function abn_field_info() {

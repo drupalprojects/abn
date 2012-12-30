@@ -8,12 +8,21 @@
  * Implements hook_field_schema().
  */
 function abn_field_schema($field) {
+  // No individual field returned by the ABR can be longer than 200 chars.
   $columns = array(
+      // ABN is the only field manually filled. The others are dynamically
+      // populated through asynchronous calls to the ABR.
       'abn' => array(
         'type' => 'varchar',
-        'length' => 16, // ABN has max length of 11 but whitespace is allowed.
+        // ABN has max length of 11 but whitespace is allowed.
+        'length' => 16,
         'not null' => FALSE,
         'sortable' => TRUE,
+      ),
+      'abn_entity_name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
       ),
     );
 

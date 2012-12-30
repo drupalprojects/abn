@@ -13,7 +13,7 @@ function abn_field_schema($field) {
         'type' => 'varchar',
         'length' => 16, // ABN has max length of 11 but whitespace is allowed.
         'not null' => FALSE,
-        'sortable' => TRUE
+        'sortable' => TRUE,
       ),
     );
 

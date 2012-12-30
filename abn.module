@@ -9,15 +9,51 @@
  */
 function abn_field_info() {
   return array(
-    'abn_field' => array(
-      'label' => t('ABN'),
+    'abn' => array(
+      'label' => t('Australian Business Number'),
       'description' => t('Store an ABN (Australian Business Number) in the database.'),
       'settings' => array(),
       'instance_settings' => array(),
-      'default_widget' => 'abn_field',
-      'default_formatter' => 'abn_default',
+      'default_widget' => 'abn_text',
+      'default_formatter' => 'abn_plain',
     ),
   );
+}
+
+/**
+ * Implements hook_field_validate().
+ */
+function abn_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  dpm('validate');
+  dpm($items);
+  foreach ($items as $delta => $item) {
+    if (!empty($item)) {
+      // An ABN is always an integer (minus whitespace).
+      if (!ctype_digit(preg_replace('/\s+/', '', $item))) {
+        $errors[$field['field_name']][$langcode][$delta][] = array(
+          'error' => 'abn_invalid',
+          'message' => t('An ABN must contain only numbers.'),
+        );
+      }
+
+      // An ABN must be at least 11 digits.
+      if (drupal_strlen($item) < 11) {
+        $errors[$field['field_name']][$langcode][$delta][] = array(
+          'error' => 'abn_invalid',
+          'message' => t('An ABN must be at least 11 digits long.'),
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function abn_field_is_empty($item, $field) {
+  dpm('is empty');
+  dpm($item);
+  return empty($item);
 }
 
 /**
@@ -25,12 +61,30 @@ function abn_field_info() {
  */
 function abn_field_formatter_info() {
   return array(
-    'abn_default' => array(
+    'abn_plain' => array(
       'label' => t('ABN, as plain text (default)'),
       'field types' => array('abn'),
-      'multiple values' => FIELD_BEHAVIOR_DEFAULT,
     ),
   );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function abn_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  foreach ($items as $delta => $item) {
+    $element[$delta] = array(
+      '#type' => 'html_tag',
+      '#tag' => 'span',
+      '#attributes' => array(
+        'class' => 'abn',
+      ),
+      '#value' => check_plain($item['abn']),
+    );
+  }
+
+  return $element;
 }
 
 /**
@@ -38,10 +92,23 @@ function abn_field_formatter_info() {
  */
 function abn_field_widget_info() {
   return array(
-    'abn' => array(
-      'label' => 'ABN',
-      'field types' => array('abn_field'),
-      'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+    'abn_text' => array(
+      'label' => t('ABN'),
+      'field types' => array('abn'),
     ),
   );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function abn_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+ dpm($element);
+ dpm($items);
+  $element += array(
+    '#type' => 'textfield',
+    '#maxlength' => 16,
+    '#default_value' => isset($items[$delta]['abn']) ? $items[$delta]['abn'] : '',
+  );
+  return $element;
 }

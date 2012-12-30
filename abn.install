@@ -1,21 +1,27 @@
 <?php
 /**
  * @file
- Install file for the abn module.
+ * Install file for the abn module.
  */
 
 /**
  * Implements hook_field_schema().
  */
 function abn_field_schema($field) {
-  return array(
-    'columns' => array(
-      'url' => array(
+  $columns = array(
+      'abn' => array(
         'type' => 'varchar',
-        'length' => 2048, // Maximum URLs length.
+        'length' => 16, // ABN has max length of 11 but whitespace is allowed.
         'not null' => FALSE,
         'sortable' => TRUE
       ),
-    ),
+    );
+
+  $indexes = array(
+    'abn' => array('abn'),
+  );
+  return array(
+    'columns' => $columns,
+    'indexes' => $indexes,
   );
 }

@@ -1,0 +1,4 @@
+name = ABN
+description = Defines an ABN (Australian Business Number) field type.
+core = 7.x
+package = Fields

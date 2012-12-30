@@ -1,0 +1,47 @@
+<?php
+/**
+ * @file
+ * Defines an ABN (Australian Business Number) field type.
+ */
+
+/**
+ * Implements hook_field_info().
+ */
+function abn_field_info() {
+  return array(
+    'abn_field' => array(
+      'label' => t('ABN'),
+      'description' => t('Store an ABN (Australian Business Number) in the database.'),
+      'settings' => array(),
+      'instance_settings' => array(),
+      'default_widget' => 'abn_field',
+      'default_formatter' => 'abn_default',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function abn_field_formatter_info() {
+  return array(
+    'abn_default' => array(
+      'label' => t('ABN, as plain text (default)'),
+      'field types' => array('abn'),
+      'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function abn_field_widget_info() {
+  return array(
+    'abn' => array(
+      'label' => 'ABN',
+      'field types' => array('abn_field'),
+      'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+    ),
+  );
+}

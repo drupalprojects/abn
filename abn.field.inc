@@ -97,9 +97,17 @@ function abn_field_validate($entity_type, $entity, $field, $instance, $langcode,
  * Implements hook_field_load().
  */
 function abn_field_load($entity_type, $entities, $field, $instances, $langcode, &$items, $age) {
-  dpm('load');
-  dpm($field);
-  dpm($items);
+  // If we're allowed to sync on load, find all $item arrays and sync them if
+  // required.
+  if ($field['settings']['sync_on'][ABN_SYNC_ON_LOAD] === ABN_SYNC_ON_LOAD) {
+    // Loop over all loaded entities.
+    foreach ($items as $entity_id => $field_values) {
+      // Loop over all values for the current entity.
+      foreach ($field_values as $delta => $item) {
+        abn_sync_field_item($items[$entity_id][$delta], $field);
+      }
+    }
+  }
 }
 
 /**
@@ -107,7 +115,9 @@ function abn_field_load($entity_type, $entities, $field, $instances, $langcode, 
  */
 function abn_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
   foreach($items as $key => $item) {
-    abn_sync_field_item($items[$key], $field);
+    // The ABN in this field may have changed so don't respect expiry dates for
+    // ABR data.
+    abn_sync_field_item($items[$key], $field, FALSE);
   }
 }
 
@@ -166,9 +176,13 @@ function abn_field_widget_info() {
  */
 function abn_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $base_widget = $element;
+  $hidden_widget = array(
+    '#type' => 'hidden',
+    '#delta' => $delta,
+    '#access' => FALSE,
+  );
 
   $abn_value = isset($items[$delta]['abn']) ? $items[$delta]['abn'] : '';
-  $updated_value = isset($items[$delta]['updated']) ? $items[$delta]['updated'] : '';
 
   $abn_widget = $base_widget + array(
     '#type' => 'textfield',
@@ -179,13 +193,15 @@ function abn_field_widget_form(&$form, &$form_state, $field, $instance, $langcod
   );
   $element['abn'] = $abn_widget;
 
-  $updated_widget = $base_widget + array(
-    '#type' => 'hidden',
-    '#default_value' => $updated_value,
-    '#delta' => $delta,
-    '#access' => FALSE,
+  $updated_widget = $base_widget + $hidden_widget + array(
+    '#default_value' => isset($items[$delta]['updated']) ? $items[$delta]['updated'] : '',
   );
   $element['updated'] = $updated_widget;
+
+  $abn_entity_name_widget = $base_widget + $hidden_widget + array(
+    '#default_value' => isset($items[$delta]['abn_entity_name']) ? $items[$delta]['abn_entity_name'] : '',
+  );
+  $element['abn_entity_name'] = $abn_entity_name_widget;
 
   return $element;
 }

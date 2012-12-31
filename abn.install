@@ -24,6 +24,14 @@ function abn_field_schema($field) {
         'length' => 255,
         'not null' => FALSE,
       ),
+      // Keep a timestamp of the most recent update from the ABR.
+      'updated' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'A timestamp for the most recent update from the ABR.',
+      ),
     );
 
   $indexes = array(

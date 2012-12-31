@@ -5,34 +5,6 @@
  */
 
 /**
- * Define constants.
- */
-
-// Intervals in seconds for cache expiry times that map roughly to common
-// "calendar" intervals. For our usage fast is better than accurate.
-define('ABN_EXPIRES_NEVER', -1);
-define('ABN_EXPIRES_IMMEDIATELY', 0);
-define('ABN_EXPIRES_DAY', 60 * 60 * 24);
-define('ABN_EXPIRES_WEEK', 60 * 60 * 24 * 7);
-define('ABN_EXPIRES_FORTNIGHT', 60 * 60 * 24 * 7 * 2);
-// Four weeks.
-define('ABN_EXPIRES_MONTH', 60 * 60 * 24 * 7 * 4);
-// Quarter of a year.
-define('ABN_EXPIRES_QUARTER', 60 * 60 * 24 * 7 * 13);
-// Half of a year.
-define('ABN_EXPIRES_SEMESTER', 60 * 60 * 24 * 7 * 26);
-// One year.
-define('ABN_EXPIRES_YEAR', 60 * 60 * 24 * 7 * 52);
-
-define('ABN_SYNC_ON_CRON', 'sync_on_cron');
-define('ABN_SYNC_ON_LOAD', 'sync_on_load');
-
-// Defaults for field settings
-define('ABN_SYNC_DEFAULT', TRUE);
-define('ABN_EXPIRES_DEFAULT', ABN_EXPIRES_MONTH);
-
-
-/**
  * Implements hook_field_info().
  */
 function abn_field_info() {
@@ -82,12 +54,13 @@ function abn_field_settings_form($field, $instance, $has_data) {
 
   $form['sync_on'] = array(
     '#type' => 'checkboxes',
-    '#title' => t('Events that can trigger an update for ABR data'),
+    '#title' => t('Events that can trigger an update from the ABR'),
     '#description' => t('If nothing is selected here ABR data will only be updated as content is saved. Only expired field data will be updated.'),
     '#options' => array(
       ABN_SYNC_ON_CRON => 'Cron runs',
       ABN_SYNC_ON_LOAD => 'Viewing this field',
     ),
+    '#default_value' => isset($field['settings']['sync_on']) ? $field['settings']['sync_on'] : drupal_map_assoc(array(ABN_SYNC_ON_CRON, ABN_SYNC_ON_LOAD)),
   );
 
   return $form;
@@ -121,11 +94,20 @@ function abn_field_validate($entity_type, $entity, $field, $instance, $langcode,
 }
 
 /**
+ * Implements hook_field_load().
+ */
+function abn_field_load($entity_type, $entities, $field, $instances, $langcode, &$items, $age) {
+  dpm('load');
+  dpm($field);
+  dpm($items);
+}
+
+/**
  * Implements hook_field_presave().
  */
 function abn_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
   foreach($items as $key => $item) {
-    _abn_sync_field_item($items[$key]);
+    abn_sync_field_item($items[$key], $field);
   }
 }
 
@@ -183,17 +165,27 @@ function abn_field_widget_info() {
  * Implements hook_field_widget_form().
  */
 function abn_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
-  $value = isset($items[$delta]['abn']) ? $items[$delta]['abn'] : '';
-  $widget = $element;
+  $base_widget = $element;
 
-  $widget += array(
+  $abn_value = isset($items[$delta]['abn']) ? $items[$delta]['abn'] : '';
+  $updated_value = isset($items[$delta]['updated']) ? $items[$delta]['updated'] : '';
+
+  $abn_widget = $base_widget + array(
     '#type' => 'textfield',
     '#maxlength' => 16,
     '#size' => 14,
-    '#default_value' => $value,
+    '#default_value' => $abn_value,
     '#delta' => $delta,
   );
+  $element['abn'] = $abn_widget;
 
-  $element['abn'] = $widget;
+  $updated_widget = $base_widget + array(
+    '#type' => 'hidden',
+    '#default_value' => $updated_value,
+    '#delta' => $delta,
+    '#access' => FALSE,
+  );
+  $element['updated'] = $updated_widget;
+
   return $element;
 }

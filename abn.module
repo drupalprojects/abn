@@ -4,6 +4,37 @@
  * Defines an ABN (Australian Business Number) field type.
  */
 
+/**
+ * Define constants.
+ */
+
+// Intervals in seconds for cache expiry times that map roughly to common
+// "calendar" intervals. For our usage fast is better than accurate.
+define('ABN_EXPIRES_NEVER', -1);
+define('ABN_EXPIRES_IMMEDIATELY', 0);
+define('ABN_EXPIRES_DAY', 60 * 60 * 24);
+define('ABN_EXPIRES_WEEK', 60 * 60 * 24 * 7);
+define('ABN_EXPIRES_FORTNIGHT', 60 * 60 * 24 * 7 * 2);
+// Four weeks.
+define('ABN_EXPIRES_MONTH', 60 * 60 * 24 * 7 * 4);
+// Quarter of a year.
+define('ABN_EXPIRES_QUARTER', 60 * 60 * 24 * 7 * 13);
+// Half of a year.
+define('ABN_EXPIRES_SEMESTER', 60 * 60 * 24 * 7 * 26);
+// One year.
+define('ABN_EXPIRES_YEAR', 60 * 60 * 24 * 7 * 52);
+
+define('ABN_SYNC_ON_CRON', 'sync_on_cron');
+define('ABN_SYNC_ON_LOAD', 'sync_on_load');
+
+// Defaults for field settings.
+define('ABN_SYNC_DEFAULT', TRUE);
+define('ABN_EXPIRES_DEFAULT', ABN_EXPIRES_MONTH);
+
+/**
+ * Include files.
+ */
+
 module_load_include('inc', 'abn', 'abn.field');
 
 /**
@@ -32,21 +63,71 @@ function abn_lookup($abn) {
  * Implements hook_init().
  */
 function abn_init() {
- $field_types = field_info_fields();
- foreach($field_types as $field_type) {
-  if($field_type['type'] == 'abn') {
+  $field_types = field_info_fields();
+  foreach ($field_types as $field_type) {
+    if ($field_type['type'] == 'abn') {
+    }
   }
- }
 }
 
 /**
- * Takes a field $item and syncs extra information from the ABR as required.
+ * Attaches/updates extra information from the ABR to an ABN field item.
  *
- * $item is modified by reference.
+ * Only a single item can be synced at a time by this function.
+ *
+ * @param array $item
+ *   An item array as defined by the Field API. The item is passed by reference.
+ *   An item array is the flat array of key/value pairs stored by the Field API
+ *   for each item added by the widget form.
+ * @param array $field
+ *   A $field array as defined by the Field API.
+ * @param boolean $respect_expires
+ *   If TRUE $items will only be modified if the period specified by the expires
+ *   settings on the field has passed. Defaults to TRUE.
  */
-function _abn_sync_field_item(&$item) {
-  $lookup = abn_lookup($item['abn']);
+function abn_sync_field_item(&$item, $field, $respect_expires = TRUE) {
+  // If the field data has expired we can update it.
+  $item_is_expired = abn_field_item_is_expired($item, $field);
+  if ($item_is_expired || !$respect_expires) {
+    $lookup = abn_lookup($item['abn']);
 
-  $item['abn_entity_name'] = $lookup;
-  $item['updated'] = $_SERVER['REQUEST_TIME'];
+    $item['abn_entity_name'] = $lookup;
+    $item['updated'] = $_SERVER['REQUEST_TIME'];
+  }
+}
+
+/**
+ * Determine whether the data in a field item has expired.
+ *
+ * @param array $item
+ *   An item array as defined by the Field API.
+ * @param array $field
+ *   A field array as defined by the Field API.
+ *
+ * @return boolean
+ *   TRUE if the field item data as expired, FALSE if it is still "fresh".
+ *
+ * @see abn_sync_field_item()
+ */
+function abn_field_item_is_expired($item, $field) {
+  $expires = (int) $field['settings']['expires'];
+  $is_expired = FALSE;
+
+  // If our data is not set to never expire
+  // And our updated time is not empty
+  // And our updated time + our expiry delay is in the past
+  // Then our item has expired.
+  if ($expires !== ABN_EXPIRES_NEVER
+  && !empty($item['updated'])
+  && $item['updated'] + $expires <= $_SERVER['REQUEST_TIME']) {
+    $is_expired = TRUE;
+  }
+
+  // If we don't have any updated time then we have to assume the data is
+  // expired.
+  if (empty($item['updated'])) {
+    $is_expired = TRUE;
+  }
+
+  return $is_expired;
 }

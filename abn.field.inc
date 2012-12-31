@@ -24,6 +24,9 @@ define('ABN_EXPIRES_SEMESTER', 60 * 60 * 24 * 7 * 26);
 // One year.
 define('ABN_EXPIRES_YEAR', 60 * 60 * 24 * 7 * 52);
 
+define('ABN_SYNC_ON_CRON', 'sync_on_cron');
+define('ABN_SYNC_ON_LOAD', 'sync_on_load');
+
 // Defaults for field settings
 define('ABN_SYNC_DEFAULT', TRUE);
 define('ABN_EXPIRES_DEFAULT', ABN_EXPIRES_MONTH);
@@ -54,7 +57,7 @@ function abn_field_settings_form($field, $instance, $has_data) {
   $form = array();
   $form['sync'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Request public data associated with each ABN from the ABR (Recommended).'),
+    '#title' => t('Request public data associated with each ABN in this field from the ABR (Recommended).'),
     '#description' => t('Without sending requests to the ABR this field can only display each ABN in plain text format, ie. no company trading or historical information.'),
     '#default_value' => isset($field['settings']['sync']) ? $field['settings']['sync'] : ABN_SYNC_DEFAULT,
   );
@@ -62,7 +65,7 @@ function abn_field_settings_form($field, $instance, $has_data) {
   $form['expires'] = array(
     '#type' => 'select',
     '#title' => t('Minimum lifetime of ABR data'),
-    '#description' => t('Smaller values improve freshness of ABR data, at the expense of scalability.'),
+    '#description' => t('Smaller values improve freshness of ABR data, at the expense of scalability. This setting does not prevent data for this field being updated as content is saved.'),
     '#options' => array(
       ABN_EXPIRES_IMMEDIATELY => 'No minimum lifetime',
       ABN_EXPIRES_DAY => '1 day',
@@ -75,6 +78,16 @@ function abn_field_settings_form($field, $instance, $has_data) {
       ABN_EXPIRES_NEVER => 'Never expire data',
     ),
     '#default_value' => isset($field['settings']['expires']) ? $field['settings']['expires'] : ABN_EXPIRES_DEFAULT,
+  );
+
+  $form['sync_on'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Events that can trigger an update for ABR data'),
+    '#description' => t('If nothing is selected here ABR data will only be updated as content is saved. Only expired field data will be updated.'),
+    '#options' => array(
+      ABN_SYNC_ON_CRON => 'Cron runs',
+      ABN_SYNC_ON_LOAD => 'Viewing this field',
+    ),
   );
 
   return $form;

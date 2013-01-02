@@ -10,8 +10,8 @@
 
 // ABR API
 define('ABN_ABR_QUERY_URL', 'https://abr.business.gov.au/abrxmlsearchRPC/AbrXmlSearch.asmx/');
-define('ABN_ABR_ABN_SEARCH_METHOD', 'SearchByABN');
-define('ABN_ABR_ABN_SEARCH_VERSION', 'v201205');
+define('ABN_ABR_ABN_SEARCH_METHOD', 'SearchByABNv');
+define('ABN_ABR_ABN_SEARCH_VERSION', '201205');
 
 // Intervals in seconds for cache expiry times that map roughly to common
 // "calendar" intervals. For our usage fast is better than accurate.
@@ -76,18 +76,62 @@ function abn_normalize_abn($abn) {
 
 /**
  * Performs an ABN lookup and returns the parsed results.
+ *
+ * The ABR sends back an XML file for some types of failed lookups so we need
+ * to handle these and extract relevant data from successful lookups. Lookups
+ * are statically cached per ABN to avoid hitting the remote server multiple
+ * wherever possible.
+ *
+ * @param string $abn
+ *   An ABN to perform a lookup for. Non-numeric characters will be ignored.
+ *
+ * @return array
+ *   An array with the structure of a businessEntity node in the XML returned
+ *   by the ABR if successful. FALSE if there was an error during the lookup.
  */
 function abn_lookup($abn) {
+  // There is never any need to reset this so we're not using drupal_static().
+  static $cache = array();
+  $abn = abn_normalize_abn($abn);
+  $cid = $abn;
   $api_key = variable_get('abn_api_key', '');
+
+  // Do nothing if we have no API key.
   if(empty($api_key)) {
     drupal_set_message(t('A lookup was attempted for ABN %abn but failed because no API key has been provided.', array('%abn' => $abn)));
-    return;
+    // Return straight away if we have no API key. Nothing will work.
+    return FALSE;
   }
-  $abn = abn_normalize_abn($abn);
-  $abr_method_url = ABN_ABR_QUERY_URL . ABN_ABR_ABN_SEARCH_METHOD . ABN_ABR_ABN_SEARCH_VERSION;
 
-  $request = drupal_http_request($abr_method_url . '?searchString=' . $abn . '&includeHistoricalDetails=Y&authenticationGuid=' . $api_key);
-  dpm($request);
+  if (!isset($cache[$cid])) {
+    // Perform a GET request.
+    $abr_method_url = ABN_ABR_QUERY_URL . ABN_ABR_ABN_SEARCH_METHOD . ABN_ABR_ABN_SEARCH_VERSION;
+    $request = drupal_http_request($abr_method_url . '?searchString=' . $abn . '&includeHistoricalDetails=N&authenticationGuid=' . $api_key);
+
+    // If we didn't get a nice 200 then we don't have any XML to work with.
+    if(empty($request->code) || $request->code != '200') {
+      watchdog('abn', 'There was an error contacting the Australian Business Register while processing ABN: %abn. Response code was: %code with data: %data.', array('%abn' => $abn, '%code' => $request->code, '%data' => $request->data), WATCHDOG_ERROR);
+    }
+    else {
+      // Turn our XML string into a nested, associative array.
+      $data = new SimpleXMLElement($request->data);
+      $data = drupal_json_decode(drupal_json_encode($data));
+
+      // Check for exceptions in our data indicating incorrect search parameters.
+      if (!empty($data['response']['exception'])) {
+        watchdog('abn', 'The Australian Business Register returned an exception while processing ABN: %abn. Exception description was: %exception.', array(
+          '%abn' => $abn,
+          '%exception' => $data['response']['exception']['exceptionDescription']), WATCHDOG_WARNING);
+      }
+      else {
+        // Only cache successful requests.
+        $cache[$cid] = $data['response']['businessEntity' . ABN_ABR_ABN_SEARCH_VERSION];
+      }
+    }
+  }
+
+  // Return FALSE if the ABR returned an exception.
+  $ret = isset($cache[$cid]) ? $cache[$cid] : FALSE;
   return uniqid();
 }
 
@@ -97,8 +141,6 @@ function abn_lookup($abn) {
 function abn_init() {
   $field_types = field_info_fields();
   $test_node = node_load(5);
-  dpm($test_node);
-  dpm($field_types);
   foreach($test_node->field_fiabn['und'] as $item) {
     abn_sync_field_item($item, $field_types['field_fiabn'], FALSE);
   }

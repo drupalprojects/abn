@@ -49,6 +49,16 @@ function abn_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'abn.pages.inc',
   );
+
+  $items['admin/config/services/abn'] = array(
+    'title' => 'ABN Lookup configuration',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('abn_admin_settings'),
+    'access arguments' => array('administer abn'),
+    'file' => 'abn.pages.inc',
+  );
+
+  return $items;
 }
 
 /**

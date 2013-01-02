@@ -73,9 +73,9 @@ function abn_field_validate($entity_type, $entity, $field, $instance, $langcode,
   foreach ($items as $delta => $item) {
     if (!empty($item['abn'])) {
       // Don't consider whitespace in validation.
-      $sans_space = preg_replace('/\s+/', '', $item['abn']);
+      $abn = preg_replace('@\s+@', '', $item['abn']);
 
-      if (!ctype_digit($sans_space)) {
+      if (!ctype_digit($abn)) {
         $errors[$field['field_name']][$langcode][$delta][] = array(
           'error' => 'abn_invalid',
           'message' => t('An ABN must contain only numbers.'),
@@ -83,7 +83,7 @@ function abn_field_validate($entity_type, $entity, $field, $instance, $langcode,
       }
 
       // An ABN is 11 digits.
-      if (drupal_strlen($sans_space) !== 11) {
+      if (drupal_strlen($abn) !== 11) {
         $errors[$field['field_name']][$langcode][$delta][] = array(
           'error' => 'abn_invalid',
           'message' => t('An ABN must be exactly 11 digits long.'),

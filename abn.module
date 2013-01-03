@@ -264,3 +264,35 @@ function abn_field_item_is_expired($item, $field) {
   }
   return $is_expired;
 }
+
+/**
+ * Get a list of entities with expired abn fields.
+ *
+ * @return array
+ *   An array of entities as returned by the EntityFieldQuery class.
+ */
+function abn_get_expired_entities() {
+  static $entities = array();
+  $fields = field_info_fields();
+
+  foreach($fields as $field) {
+    if($field['module'] == 'abn') {
+      // Anything longer than 'expires' time ago has expired.
+      $expiry_stamp = $_SERVER['REQUEST_TIME'] - (int) $field['settings']['expires'];
+      $query = new EntityFieldQuery();
+      $query->fieldCondition($field['field_name'], 'updated', $expiry_stamp, '<=');
+      $result = $query->execute();
+
+      // Merge our results into the main entities array.
+      foreach($result as $entity_type => $entity_list) {
+        if(empty($entities[$entity_type])) {
+          $entities[$entity_type] = $entity_list;
+        }
+        else {
+          $entities[$entity_type] += $entity_list;
+        }
+      }
+    }
+  }
+  return $entities;
+}

@@ -114,10 +114,13 @@ function abn_field_load($entity_type, $entities, $field, $instances, $langcode, 
  * Implements hook_field_presave().
  */
 function abn_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  // Don't perform expensive syncing operations if the field values match the
+  // "original" entity. No changes have been made to this item since last save.
+  $original_items = isset($entity->original->{$field['field_name']}[$langcode]) ? $entity->original->{$field['field_name']}[$langcode] : NULL;
   foreach($items as $key => $item) {
-    // The ABN in this field may have changed so don't respect expiry dates for
-    // ABR data.
-    abn_sync_field_item($items[$key], $field, FALSE);
+    if(empty($original_items[$key]) || $original_items[$key] != $item) {
+      abn_sync_field_item($items[$key], $field, FALSE);
+    }
   }
 }
 
@@ -136,6 +139,7 @@ function abn_field_formatter_info() {
     'abn' => array(
       'label' => t('ABN: plain text'),
     ),
+    // Spaces follow the convention on the ABR website.
     'abn_spaced' => array(
       'label' => t('ABN: spaced (default)'),
     ),
@@ -207,7 +211,7 @@ function abn_field_formatter_view($entity_type, $entity, $field, $instance, $lan
       // If the formatter has the same name as the field we can just sanitize
       // and return it by default.
       default:
-        $formatted_value = check_plain($item[$display['type']]);
+        $formatted_value = isset($item[$display['type']]) ? check_plain($item[$display['type']]) : '';
         break;
 
     }

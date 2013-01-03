@@ -139,7 +139,8 @@ function abn_lookup($abn) {
 /**
  * Attaches/updates/sanitizes ABR data for an ABN field item.
  *
- * Only a single item can be synced at a time by this function.
+ * Only a single item can be synced at a time by this function. This function
+ * does not handle saving data to the database.
  *
  * @param array $item
  *   An item array as defined by the Field API. The item is passed by reference.
@@ -152,16 +153,21 @@ function abn_lookup($abn) {
  *   settings on the field has passed. Defaults to TRUE.
  */
 function abn_sync_field_item(&$item, $field, $respect_expires = TRUE) {
-  // Do nothing if sync is not enabled for this field.
+  // We can hit fatal errors upon db inserts if we don't ensure updated is set.
+  if (!isset($item['updated'])) {
+    $item['updated'] = 0;
+  }
+
+  // Don't sync if it hasn't been enabled.
   if (empty($field['settings']['sync'])) {
     return;
   }
+
   // If the field data has expired we can update it.
   $item_is_expired = abn_field_item_is_expired($item, $field);
   if ($item_is_expired || !$respect_expires) {
     $lookup = abn_lookup($item['abn']);
 
-    // Do nothing if there was an error during lookup.
     if(!empty($lookup)) {
       // Name can be mainName or legalName (for individuals). All other name-like
       // fields are deprecated as of mid-2013.
@@ -208,6 +214,10 @@ function abn_sync_field_item(&$item, $field, $respect_expires = TRUE) {
 
       // Record the time of this update.
       $item['updated'] = check_plain($_SERVER['REQUEST_TIME']);
+    }
+    // If there was an error during lookup, flag this as needing update.
+    else {
+      $item['updated'] = 0;
     }
   }
 }

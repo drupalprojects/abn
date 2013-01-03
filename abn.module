@@ -137,7 +137,7 @@ function abn_lookup($abn) {
 }
 
 /**
- * Attaches/updates extra information from the ABR to an ABN field item.
+ * Attaches/updates/sanitizes ABR data for an ABN field item.
  *
  * Only a single item can be synced at a time by this function.
  *
@@ -166,7 +166,7 @@ function abn_sync_field_item(&$item, $field, $respect_expires = TRUE) {
       // Name can be mainName or legalName (for individuals). All other name-like
       // fields are deprecated as of mid-2013.
       if(!empty($lookup['mainName'])) {
-        $item['abn_name'] = $lookup['mainName']['organisationName'];
+        $item['abn_name'] = check_plain($lookup['mainName']['organisationName']);
       }
       if(!empty($lookup['legalName'])) {
         $name_array = array();
@@ -177,37 +177,37 @@ function abn_sync_field_item(&$item, $field, $respect_expires = TRUE) {
         $name_array = array_filter($name_array, 'abn_not_empty');
         // Convert to a single string.
         $full_name = implode(' ', $name_array);
-        $item['abn_name'] = $full_name;
+        $item['abn_name'] = check_plain($full_name);
       }
 
       // ABN status.
       if (!empty($lookup['entityStatus']['entityStatusCode'])) {
-        $item['abn_status'] = $lookup['entityStatus']['entityStatusCode'];
+        $item['abn_status'] = check_plain($lookup['entityStatus']['entityStatusCode']);
       }
 
       // ABN GST dates.
       if (!empty($lookup['goodsAndServicesTax']['effectiveFrom'])) {
-        $item['abn_gst_start'] = $lookup['goodsAndServicesTax']['effectiveFrom'];
+        $item['abn_gst_start'] = check_plain($lookup['goodsAndServicesTax']['effectiveFrom']);
       }
 
       // ABN Entity type.
       if (!empty($lookup['entityType']['entityDescription'])) {
-        $item['abn_type'] = $lookup['entityType']['entityDescription'];
+        $item['abn_type'] = check_plain($lookup['entityType']['entityDescription']);
       }
       if (!empty($lookup['entityType']['entityTypeCode'])) {
-        $item['abn_type_code'] = $lookup['entityType']['entityTypeCode'];
+        $item['abn_type_code'] = check_plain($lookup['entityType']['entityTypeCode']);
       }
 
       // ABN Entity physical address.
       if (!empty($lookup['mainBusinessPhysicalAddress']['stateCode'])) {
-        $item['abn_address_state'] = $lookup['mainBusinessPhysicalAddress']['stateCode'];
+        $item['abn_address_state'] = check_plain($lookup['mainBusinessPhysicalAddress']['stateCode']);
       }
       if (!empty($lookup['mainBusinessPhysicalAddress']['postcode'])) {
-        $item['abn_address_postcode'] = $lookup['mainBusinessPhysicalAddress']['postcode'];
+        $item['abn_address_postcode'] = check_plain($lookup['mainBusinessPhysicalAddress']['postcode']);
       }
 
       // Record the time of this update.
-      $item['updated'] = $_SERVER['REQUEST_TIME'];
+      $item['updated'] = check_plain($_SERVER['REQUEST_TIME']);
     }
   }
 }

@@ -132,12 +132,46 @@ function abn_field_is_empty($item, $field) {
  * Implements hook_field_formatter_info().
  */
 function abn_field_formatter_info() {
-  return array(
+  $formatters = array(
     'abn_plain' => array(
-      'label' => t('ABN, as plain text (default)'),
-      'field types' => array('abn'),
+      'label' => t('ABN: plain text'),
+    ),
+    'abn_spaced' => array(
+      'label' => t('ABN: spaced'),
+    ),
+    'abn_normalized' => array(
+      'label' => t('ABN: without spaces'),
+    ),
+    'abn_status' => array(
+      'label' => t('ABN: ABN status'),
+    ),
+    'abn_name' => array(
+      'label' => t('Business: name'),
+    ),
+    'abn_gst_start' => array(
+      'label' => t('Business: GST start date'),
+    ),
+    'abn_type' => array(
+      'label' => t('Business: type'),
+    ),
+    'abn_type_code' => array(
+      'label' => t('Business: type code'),
+    ),
+    'abn_address_state' => array(
+      'label' => t('Business address: state'),
+    ),
+    'abn_address_postcode' => array(
+      'label' => t('Business address: postcode'),
+    ),
+    'abn_updated' => array(
+      'label' => t('ABR data: last updated timestamp'),
     ),
   );
+
+  foreach($formatters as $key => $formatter) {
+    $formatters[$key]['field types'] = array('abn');
+  }
+  return $formatters;
 }
 
 /**

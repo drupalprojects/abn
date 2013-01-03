@@ -179,29 +179,39 @@ function abn_field_widget_form(&$form, &$form_state, $field, $instance, $langcod
   $base_widget = $element;
   $base_widget['#delta'] = $delta;
 
-  $hidden_widget = $base_widget + array(
-    '#type' => 'hidden',
-    '#access' => FALSE,
-  );
-
-  $abn_value = isset($items[$delta]['abn']) ? $items[$delta]['abn'] : '';
-
   $abn_widget = $base_widget + array(
     '#type' => 'textfield',
     '#maxlength' => 16,
     '#size' => 14,
-    '#default_value' => $abn_value,
+    '#default_value' => isset($items[$delta]['abn']) ? $items[$delta]['abn'] : '',
     // Display the name registered to the ABN if we know it.
     '#field_suffix' => isset($items[$delta]['abn_name']) ? $items[$delta]['abn_name'] : '',
   );
   $element['abn'] = $abn_widget;
 
-  $element['abn_name'] = $hidden_widget + array(
-    '#default_value' => isset($items[$delta]['abn_name']) ? $items[$delta]['abn_name'] : '',
+  // All data pulled from the ABR is stored in hidden fields that the user
+  // cannot access directly.
+  $hidden_fields = array(
+    'abn_name',
+    'abn_status',
+    'abn_gst_start',
+    'abn_type',
+    'abn_type_code',
+    'abn_address_state',
+    'abn_address_postcode',
+    'updated',
   );
 
-  $element['updated'] = $hidden_widget + array(
-    '#default_value' => isset($items[$delta]['updated']) ? $items[$delta]['updated'] : '',
+  $hidden_widget = $base_widget + array(
+    '#type' => 'hidden',
+    '#access' => FALSE,
   );
+
+  foreach($hidden_fields as $hidden_field) {
+    $element[$hidden_field] = $hidden_widget + array(
+      '#default_value' => isset($items[$delta][$hidden_field]) ? $items[$delta][$hidden_field] : '',
+    );
+  }
+
   return $element;
 }

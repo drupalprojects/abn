@@ -88,6 +88,7 @@ function abn_normalize_abn($abn) {
  * @return array
  *   An array with the structure of a businessEntity node in the XML returned
  *   by the ABR if successful. FALSE if there was an error during the lookup.
+ *   The ABR data returned is not sanitized here, it is returned as-is.
  */
 function abn_lookup($abn) {
   // There is never any need to reset this so we're not using drupal_static().

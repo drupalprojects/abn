@@ -5,16 +5,6 @@
  */
 
 /**
- * Page callback to render ajax abn lookup as JSON.
- */
-function abn_lookup_callback() {
-  $var = array(
-    'stuff' => 'otherstuff',
-  );
-  drupal_json_output($var);
-}
-
-/**
  * Page callback to render global settings page for ABN.
  *
  * Currently only provides a place to enter an API key (ABR GUID).

@@ -39,7 +39,7 @@ function abn_field_settings_form($field, $instance, $has_data) {
     '#title' => t('Minimum lifetime of ABR data'),
     '#description' => t('Smaller values improve freshness of ABR data, at the expense of scalability. This setting does not prevent data for this field being updated as content is saved.'),
     '#options' => array(
-      ABN_EXPIRES_IMMEDIATELY => 'No minimum lifetime',
+      ABN_EXPIRES_HOUR => '1 hour',
       ABN_EXPIRES_DAY => '1 day',
       ABN_EXPIRES_WEEK => '1 week',
       ABN_EXPIRES_FORTNIGHT => '2 weeks',

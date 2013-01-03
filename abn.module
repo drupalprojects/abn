@@ -137,17 +137,6 @@ function abn_lookup($abn) {
 }
 
 /**
- * Implements hook_init().
- */
-function abn_init() {
-  // $field_types = field_info_fields();
-  // $test_node = node_load(5);
-  // foreach($test_node->field_fiabn['und'] as $item) {
-  //   // abn_sync_field_item($item, $field_types['field_fiabn'], FALSE);
-  // }
-}
-
-/**
  * Attaches/updates extra information from the ABR to an ABN field item.
  *
  * Only a single item can be synced at a time by this function.

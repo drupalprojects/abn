@@ -175,12 +175,12 @@ function abn_field_widget_info() {
  * Implements hook_field_widget_form().
  */
 function abn_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
-  dpm($items);
-  dpm($element);
+
   $base_widget = $element;
+  $base_widget['#delta'] = $delta;
+
   $hidden_widget = $base_widget + array(
     '#type' => 'hidden',
-    '#delta' => $delta,
     '#access' => FALSE,
   );
 
@@ -191,18 +191,17 @@ function abn_field_widget_form(&$form, &$form_state, $field, $instance, $langcod
     '#maxlength' => 16,
     '#size' => 14,
     '#default_value' => $abn_value,
-    '#delta' => $delta,
+    // Display the name registered to the ABN if we know it.
+    '#field_suffix' => isset($items[$delta]['abn_name']) ? $items[$delta]['abn_name'] : '',
   );
   $element['abn'] = $abn_widget;
-
-  $element['updated'] = $hidden_widget + array(
-    '#default_value' => isset($items[$delta]['updated']) ? $items[$delta]['updated'] : '',
-  );
 
   $element['abn_name'] = $hidden_widget + array(
     '#default_value' => isset($items[$delta]['abn_name']) ? $items[$delta]['abn_name'] : '',
   );
-  dpm($element);
 
+  $element['updated'] = $hidden_widget + array(
+    '#default_value' => isset($items[$delta]['updated']) ? $items[$delta]['updated'] : '',
+  );
   return $element;
 }

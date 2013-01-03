@@ -178,16 +178,41 @@ function abn_field_formatter_info() {
  * Implements hook_field_formatter_view().
  */
 function abn_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  dpm($display);
   $element = array();
   foreach ($items as $delta => $item) {
+  dpm($item);
     $element[$delta] = array(
       '#type' => 'html_tag',
       '#tag' => 'span',
       '#attributes' => array(
-        'class' => 'abn',
+        'class' => str_replace('_', '-', $display['type']),
       ),
-      '#value' => check_plain($item['abn']),
     );
+
+    $formatted_value = '';
+    switch($display['type']) {
+      case 'abn_spaced':
+        // Convert to an array so we can splice in spaces.
+        $formatted_value = str_split(abn_normalize_abn($item['abn']));
+        // Need spaces after first 2 digits and every third digit after.
+        array_splice($formatted_value, 8, 0, ' ');
+        array_splice($formatted_value, 5, 0, ' ');
+        array_splice($formatted_value, 2, 0, ' ');
+        $formatted_value = implode($formatted_value);
+        break;
+
+      case 'abn_normalized':
+        $formatted_value = abn_normalize_abn($item['abn']);
+        break;
+
+      case 'abn_plain':
+      default:
+        $formatted_value = check_plain($item['abn']);
+        break;
+
+    }
+    $element[$delta]['#value'] = $formatted_value;
   }
 
   return $element;

@@ -13,7 +13,7 @@ function abn_field_info() {
       'label' => t('Australian Business Number'),
       'description' => t('Store an ABN (Australian Business Number) in the database.'),
       'default_widget' => 'abn_text',
-      'default_formatter' => 'abn_plain',
+      'default_formatter' => 'abn_spaced',
       'settings' => array(
         'sync' => ABN_SYNC_DEFAULT,
         'expires' => ABN_EXPIRES_DEFAULT,
@@ -133,11 +133,11 @@ function abn_field_is_empty($item, $field) {
  */
 function abn_field_formatter_info() {
   $formatters = array(
-    'abn_plain' => array(
+    'abn' => array(
       'label' => t('ABN: plain text'),
     ),
     'abn_spaced' => array(
-      'label' => t('ABN: spaced'),
+      'label' => t('ABN: spaced (default)'),
     ),
     'abn_normalized' => array(
       'label' => t('ABN: without spaces'),
@@ -163,7 +163,7 @@ function abn_field_formatter_info() {
     'abn_address_postcode' => array(
       'label' => t('Business address: postcode'),
     ),
-    'abn_updated' => array(
+    'updated' => array(
       'label' => t('ABR data: last updated timestamp'),
     ),
   );
@@ -178,10 +178,8 @@ function abn_field_formatter_info() {
  * Implements hook_field_formatter_view().
  */
 function abn_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
-  dpm($display);
   $element = array();
   foreach ($items as $delta => $item) {
-  dpm($item);
     $element[$delta] = array(
       '#type' => 'html_tag',
       '#tag' => 'span',
@@ -206,9 +204,10 @@ function abn_field_formatter_view($entity_type, $entity, $field, $instance, $lan
         $formatted_value = abn_normalize_abn($item['abn']);
         break;
 
-      case 'abn_plain':
+      // If the formatter has the same name as the field we can just sanitize
+      // and return it by default.
       default:
-        $formatted_value = check_plain($item['abn']);
+        $formatted_value = check_plain($item[$display['type']]);
         break;
 
     }

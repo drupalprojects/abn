@@ -19,7 +19,7 @@ function abn_field_schema($field) {
         'not null' => FALSE,
         'sortable' => TRUE,
       ),
-      'abn_entity_name' => array(
+      'abn_name' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => FALSE,

@@ -175,8 +175,10 @@ function abn_field_widget_info() {
  * Implements hook_field_widget_form().
  */
 function abn_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  dpm($items);
+  dpm($element);
   $base_widget = $element;
-  $hidden_widget = array(
+  $hidden_widget = $base_widget + array(
     '#type' => 'hidden',
     '#delta' => $delta,
     '#access' => FALSE,
@@ -193,15 +195,14 @@ function abn_field_widget_form(&$form, &$form_state, $field, $instance, $langcod
   );
   $element['abn'] = $abn_widget;
 
-  $updated_widget = $base_widget + $hidden_widget + array(
+  $element['updated'] = $hidden_widget + array(
     '#default_value' => isset($items[$delta]['updated']) ? $items[$delta]['updated'] : '',
   );
-  $element['updated'] = $updated_widget;
 
-  $abn_entity_name_widget = $base_widget + $hidden_widget + array(
-    '#default_value' => isset($items[$delta]['abn_entity_name']) ? $items[$delta]['abn_entity_name'] : '',
+  $element['abn_name'] = $hidden_widget + array(
+    '#default_value' => isset($items[$delta]['abn_name']) ? $items[$delta]['abn_name'] : '',
   );
-  $element['abn_entity_name'] = $abn_entity_name_widget;
+  dpm($element);
 
   return $element;
 }

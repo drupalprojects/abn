@@ -16,32 +16,32 @@ function abn_field_schema($field) {
   );
 
   $columns = array(
-      // ABN is the only field manually filled. The others are dynamically
-      // populated through calls to the ABR API.
-      'abn' => array(
-        'type' => 'varchar',
-        // ABN has max length of 11 but whitespace is allowed.
-        'length' => 16,
-        'not null' => FALSE,
-        'sortable' => TRUE,
-      ),
-      'abn_name' => $abr_data,
-      'abn_status' => $abr_data,
-      // Only need GST end date if/when we deal with historical data.
-      'abn_gst_start' => $abr_data,
-      'abn_type' => $abr_data,
-      'abn_type_code' => $abr_data,
-      'abn_address_state' => $abr_data,
-      'abn_address_postcode' => $abr_data,
-      // Keep a timestamp of the most recent update from the ABR.
-      'updated' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0,
-        'description' => 'A timestamp for the most recent update from the ABR.',
-      ),
-    );
+    // ABN is the only field manually filled. The others are dynamically
+    // populated through calls to the ABR API.
+    'abn' => array(
+      'type' => 'varchar',
+      // ABN has max length of 11 but whitespace is allowed.
+      'length' => 16,
+      'not null' => FALSE,
+      'sortable' => TRUE,
+    ),
+    'abn_name' => $abr_data,
+    'abn_status' => $abr_data,
+    // Only need GST end date if/when we deal with historical data.
+    'abn_gst_start' => $abr_data,
+    'abn_type' => $abr_data,
+    'abn_type_code' => $abr_data,
+    'abn_address_state' => $abr_data,
+    'abn_address_postcode' => $abr_data,
+    // Keep a timestamp of the most recent update from the ABR.
+    'updated' => array(
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+      'default' => 0,
+      'description' => 'A timestamp for the most recent update from the ABR.',
+    ),
+  );
 
   $indexes = array(
     'abn' => array('abn'),

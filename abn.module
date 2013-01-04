@@ -269,6 +269,11 @@ function abn_get_expired_entities() {
 
   foreach ($fields as $field) {
     if ($field['module'] == 'abn') {
+      // Explicitly do nothing if this field never expires.
+      if (ABN_EXPIRES_NEVER === (int) $field['settings']['expires']) {
+        continue;
+      }
+
       // Anything longer than 'expires' time ago has expired.
       $expiry_stamp = $_SERVER['REQUEST_TIME'] - (int) $field['settings']['expires'];
 

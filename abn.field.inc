@@ -86,6 +86,11 @@ function abn_field_validate($entity_type, $entity, $field, $instance, $langcode,
  * Implements hook_field_presave().
  */
 function abn_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  // Do nothing if this field does not have syncing enabled.
+  if (!$field['settings']['sync']) {
+    return;
+  }
+
   // Don't perform expensive syncing operations if the field values match the
   // "original" entity. No changes have been made to this item since last save.
   $original_items = isset($entity->original->{$field['field_name']}[$langcode]) ? $entity->original->{$field['field_name']}[$langcode] : NULL;

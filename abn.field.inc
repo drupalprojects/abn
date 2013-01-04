@@ -117,8 +117,8 @@ function abn_field_presave($entity_type, $entity, $field, $instance, $langcode, 
   // Don't perform expensive syncing operations if the field values match the
   // "original" entity. No changes have been made to this item since last save.
   $original_items = isset($entity->original->{$field['field_name']}[$langcode]) ? $entity->original->{$field['field_name']}[$langcode] : NULL;
-  foreach($items as $key => $item) {
-    if(empty($original_items[$key]) || $original_items[$key] != $item) {
+  foreach ($items as $key => $item) {
+    if (empty($original_items[$key]) || $original_items[$key] != $item) {
       abn_sync_field_item($items[$key], $field, FALSE);
     }
   }
@@ -172,7 +172,7 @@ function abn_field_formatter_info() {
     ),
   );
 
-  foreach($formatters as $key => $formatter) {
+  foreach ($formatters as $key => $formatter) {
     $formatters[$key]['field types'] = array('abn');
   }
   return $formatters;
@@ -193,7 +193,7 @@ function abn_field_formatter_view($entity_type, $entity, $field, $instance, $lan
     );
 
     $formatted_value = '';
-    switch($display['type']) {
+    switch ($display['type']) {
       case 'abn_spaced':
         // Convert to an array so we can splice in spaces.
         $formatted_value = str_split(abn_normalize_abn($item['abn']));
@@ -269,7 +269,7 @@ function abn_field_widget_form(&$form, &$form_state, $field, $instance, $langcod
     '#access' => FALSE,
   );
 
-  foreach($hidden_fields as $hidden_field) {
+  foreach ($hidden_fields as $hidden_field) {
     $element[$hidden_field] = $hidden_widget + array(
       '#default_value' => isset($items[$delta][$hidden_field]) ? $items[$delta][$hidden_field] : '',
     );

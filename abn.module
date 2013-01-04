@@ -45,7 +45,8 @@ module_load_include('inc', 'abn', 'abn.field');
 function abn_menu() {
   // Main administration page.
   $items['admin/config/services/abn'] = array(
-    'title' => 'ABN Lookup configuration',
+    'title' => 'Australian Business Number',
+    'description' => 'View and edit the site-wide GUID provided by the Australian Business Register.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('abn_admin_settings'),
     'access arguments' => array('administer abn'),
@@ -53,6 +54,18 @@ function abn_menu() {
   );
 
   return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function abn_permission() {
+  return array(
+    'administer abn' => array(
+      'title' => t('Administer ABN'),
+      'description' => t('This does not allow users to configure ABN fields, this is allows users to view and edit the global ABR GUID.'),
+    ),
+  );
 }
 
 /**

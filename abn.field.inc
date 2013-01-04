@@ -37,7 +37,7 @@ function abn_field_settings_form($field, $instance, $has_data) {
   $form['expires'] = array(
     '#type' => 'select',
     '#title' => t('Minimum lifetime of ABR data'),
-    '#description' => t('Smaller values improve freshness of ABR data, at the expense of scalability. This setting does not prevent data for this field being updated as content is saved.'),
+    '#description' => t('Smaller values improve freshness of ABR data, at the expense of scalability as expired fields are updated every time cron runs. <br />This setting does not prevent data for this field being updated as content is saved.'),
     '#options' => array(
       ABN_EXPIRES_HOUR => '1 hour',
       ABN_EXPIRES_DAY => '1 day',
@@ -50,17 +50,6 @@ function abn_field_settings_form($field, $instance, $has_data) {
       ABN_EXPIRES_NEVER => 'Never expire data',
     ),
     '#default_value' => isset($field['settings']['expires']) ? $field['settings']['expires'] : ABN_EXPIRES_DEFAULT,
-  );
-
-  $form['sync_on'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Events that can trigger an update from the ABR'),
-    '#description' => t('If nothing is selected here ABR data will only be updated as content is saved. Only expired field data will be updated.'),
-    '#options' => array(
-      ABN_SYNC_ON_CRON => 'Cron runs',
-      ABN_SYNC_ON_LOAD => 'Viewing this field',
-    ),
-    '#default_value' => isset($field['settings']['sync_on']) ? $field['settings']['sync_on'] : drupal_map_assoc(array(ABN_SYNC_ON_CRON, ABN_SYNC_ON_LOAD)),
   );
 
   return $form;
@@ -88,23 +77,6 @@ function abn_field_validate($entity_type, $entity, $field, $instance, $langcode,
           'error' => 'abn_invalid',
           'message' => t('An ABN must be exactly 11 digits long.'),
         );
-      }
-    }
-  }
-}
-
-/**
- * Implements hook_field_load().
- */
-function abn_field_load($entity_type, $entities, $field, $instances, $langcode, &$items, $age) {
-  // If we're allowed to sync on load, find all $item arrays and sync them if
-  // required.
-  if ($field['settings']['sync_on'][ABN_SYNC_ON_LOAD] === ABN_SYNC_ON_LOAD) {
-    // Loop over all loaded entities.
-    foreach ($items as $entity_id => $field_values) {
-      // Loop over all values for the current entity.
-      foreach ($field_values as $delta => $item) {
-        abn_sync_field_item($items[$entity_id][$delta], $field);
       }
     }
   }

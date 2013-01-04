@@ -29,9 +29,6 @@ define('ABN_EXPIRES_SEMESTER', 60 * 60 * 24 * 7 * 26);
 // One year.
 define('ABN_EXPIRES_YEAR', 60 * 60 * 24 * 7 * 52);
 
-define('ABN_SYNC_ON_CRON', 'sync_on_cron');
-define('ABN_SYNC_ON_LOAD', 'sync_on_load');
-
 // Defaults for field settings.
 define('ABN_SYNC_DEFAULT', TRUE);
 define('ABN_EXPIRES_DEFAULT', ABN_EXPIRES_MONTH);

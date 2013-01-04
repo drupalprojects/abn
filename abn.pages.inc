@@ -18,7 +18,7 @@ function abn_admin_settings() {
     '#title' => t('Australian Business Register GUID'),
     '#required' => TRUE,
     '#default_value' => $api_key,
-    '#description' => t('The ABR provides access to their web services through a GUID that acts as an API key. <br />If you don\'t have one you need to ' . l('lodge an application', 'http://www.abr.business.gov.au/RegisterAgreement.aspx') . ' with the ABR and agree to their Terms & Conditions.'),
+    '#description' => t("The ABR provides access to their web services through a GUID that acts as an API key. <br />If you don't have one you need to <a href=\"http://www.abr.business.gov.au/RegisterAgreement.aspx\">lodge an application</a> with the ABR and agree to their Terms & Conditions."),
   );
 
   return system_settings_form($items);

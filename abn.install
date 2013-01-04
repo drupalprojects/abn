@@ -51,3 +51,31 @@ function abn_field_schema($field) {
     'indexes' => $indexes,
   );
 }
+
+/**
+ * Implements hook_requirements().
+ */
+function abn_requirements($phase) {
+  $t = get_t();
+  // By default we'll sound the "EVERYTHING IS OK" alarm.
+  $requirements = array(
+    'abn' => array(
+      'title' => 'Australian Business Number ABR GUID',
+      'description' => $t('ABN has found an ABR GUID. If it is valid ABN lookups shoud be successful.'),
+      'value' => 'Exists',
+      'severity' => REQUIREMENT_OK,
+    ),
+  );
+
+  // Warn the user if no ABR GUID has been provided.
+  if ($phase == 'runtime') {
+    $api_key = variable_get('abn_api_key', '');
+    if (!$api_key) {
+      $requirements['abn']['description'] = $t('ABN could not find an ABR GUID so ABN lookups cannot be successful. Once you have successfully lodged an application for a GUID with the ABR please enter it on the <a href="/admin/config/services/abn">ABN configuration page</a>.');
+      $requirements['abn']['severity'] = REQUIREMENT_WARNING;
+      $requirements['abn']['value'] = 'Not found';
+    }
+  }
+
+  return $requirements;
+}

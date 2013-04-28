@@ -2,3 +2,4 @@ name = Australian Business Number
 description = Defines an ABN (Australian Business Number) field type.
 core = 7.x
 package = Fields
+configure = admin/config/services/abn

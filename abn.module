@@ -346,6 +346,7 @@ function abn_queue_process($entity_info) {
   }
 
   // Simply load the entity and save the fields. Our hooks will handle the rest.
-  $entity = reset(entity_load($entity_info->entity_type, array($entity_info->id)));
+  $entity = entity_load($entity_info->entity_type, array($entity_info->id));
+  $entity = reset($entity);
   field_attach_update($entity_info->entity_type, $entity);
 }
